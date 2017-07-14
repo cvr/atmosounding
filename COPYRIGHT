@@ -1,0 +1,24 @@
+
+
+COPYRIGHT and LICENSE for:
+	savitzky_golay_lowpassfilter.py 
+	savitzky_golay_lowpassfilter.py3
+	finite_differences.py
+
+Copyright (C) 2017 by Carlos Veiga Rodrigues. All rights reserved.
+Author:  Carlos Veiga Rodrigues <cvrodrigues@gmail.com>
+
+This program can be redistribuited and modified
+under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation,
+either version 3 of the License or any later version.
+This program is distributed WITHOUT ANY WARRANTY,
+without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+For more details consult the GNU Lesser General Public License
+at http://www.gnu.org/licenses/lgpl.html.
+
+
+ChangeLog (date - version - author):
+* July 2017 - 1.0 - Carlos Veiga Rodrigues
+
