@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # vim: set fileencoding=utf-8 fileformat=unix :
 # -*- coding: utf-8 -*-
 # vim: set ts=8 et sw=4 sts=4 sta :
 
-import os
+import os, sys
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -51,25 +51,28 @@ def read_sounding (fname):
         return True
     if not os.path.isfile (fname):
         raise RuntimeError ("file '%s' does not exists?" % fname)
-    fid = open(fname, 'Ur')
+    if sys.version_info[0] <= 2:
+        fid = open(fname, 'Ur')  # python 2
+    else:
+        fid = open(fname, 'Ur',  errors='replace')  # python 3
     lines = fid.readlines()
     fid.close()
     ## get station name
-    for i in xrange(len(lines)):
+    for i in range(len(lines)):
         l = lines[i].replace('\n','').split(':')
         l = [s.strip() for s in l]
         if 'Station Name' in l:
             station = ''.join(l).replace('Station Name','')
             break
     ## get launching date
-    for i in xrange(len(lines)):
+    for i in range(len(lines)):
         l = lines[i].replace('\n','')
         if 'launched' in l.lower():
             launched = ' '.join(l.split()).replace(' :',':')
             break
     ## get header with variables
     header = None
-    for i in xrange(len(lines)):
+    for i in range(len(lines)):
         l = lines[i].replace('\n','').lower().split()
         if 'time' and 'alt_agl' and 'press' and 'temp' and 'relhum' in l:
             ## found header
@@ -77,13 +80,13 @@ def read_sounding (fname):
             header = lines[i].replace('\n','').split()
             break
     if None == header:
-        print "failed reading file '%s'" % fname
+        print("failed reading file '%s'" % fname)
         raise RuntimeError ("failed to find header with variables... aborting")
     else:
-        print "header with variables found."
-        print "number of variables: %s" % len(header)
-        print "printing variable names:"
-        print np.array(header)
+        print("header with variables found.")
+        print("number of variables: %s" % len(header))
+        print("printing variable names:")
+        print(np.array(header))
     ## build output dict
     o = {}
     o['nvars'] = len(header)
@@ -107,7 +110,7 @@ def read_sounding (fname):
     nj.append(header.index('mix_rat'))
     nj.append(header.index('wspeed'))
     ## start reading file
-    for i in xrange(len(lines)):
+    for i in range(len(lines)):
         l = lines[i].replace('\n','').lower()
         ## remove 'am' and 'pm' if not there are problems
         l = l.replace('am','').replace('pm','')
@@ -116,7 +119,7 @@ def read_sounding (fname):
         ## see if values are floats
         if len(l) == o['nvars'] and allfloat([l[j] for j in nj]):
             ## list l contains the values
-            for (v, n, ) in zip(o['var'], xrange(o['nvars'])):
+            for (v, n, ) in zip(o['var'], range(o['nvars'])):
                 o[v].append( l[n] )
     ## convert to float
     vv = ['Time', 'GPM_AGL', 'Alt_AGL', 'Alt_MSL', 'North', 'East', 'Ascent',\
@@ -124,7 +127,7 @@ def read_sounding (fname):
         'VP', 'Mix_Rat', 'SVP']
     for v in vv:
         if v.lower() in o['var']:
-            print v
+            print(v)
             o[v.lower()] = np.array(o[v.lower()], float)
     ## convert to integer
     vv = ['WDirn']
@@ -146,19 +149,19 @@ def correct_units (o):
     for v in vv:
         if v in o['var']:
             V = o['header'][o['var'].index(v)]
-            print "converting %s from hPa to Pa" % V
+            print("converting %s from hPa to Pa" % V)
             o[v] *= 1E2
     vv = ['temp', 'vtemp', 'dp']
     for v in vv:
         if v in o['var']:
             V = o['header'][o['var'].index(v)]
-            print "converting %s from degrees Celsius to Kelvin" % V
+            print("converting %s from degrees Celsius to Kelvin" % V)
             o[v] += 273.15
     vv = ['mix_rat']
     for v in vv:
         if v in o['var']:
             V = o['header'][o['var'].index(v)]
-            print "converting %s from g_vapor/kg_dry to kg_vapor / kg_dry" % V
+            print("converting %s from g_vapor/kg_dry to kg_vapor / kg_dry" % V)
             o[v] *= 1E-3
     return o
 
@@ -177,7 +180,7 @@ Rd_Cp = 2/7.
 g = 9.80665
 
 
-print "Checking some of the data..."
+print("Checking some of the data...")
 
 def calc_err (x, y):
     m = np.abs(.5 * (x + y))
@@ -186,13 +189,13 @@ def calc_err (x, y):
     return "max rel. error = %g%%" % np.max(relerr)
 
 RH = data['vp'] / data['svp'] * 100
-print "relative humidity \t>>>\t %s" % calc_err (RH, data['relhum'])
+print("relative humidity \t>>>\t %s" % calc_err (RH, data['relhum']))
 
 wv = Rd/Rv * data['vp'] / (data['press'] - data['vp'])
-print "vapor mix. ratio \t>>>\t %s" % calc_err (wv, data['mix_rat'])
+print("vapor mix. ratio \t>>>\t %s" % calc_err (wv, data['mix_rat']))
 
 Tv = data['temp'] * (1. + wv * Rv/Rd) / (1. + wv)
-print "virtual temperature \t>>>\t %s" % calc_err (Tv, data['vtemp'])
+print("virtual temperature \t>>>\t %s" % calc_err (Tv, data['vtemp']))
 
 
 ## Limiting maximum height
@@ -251,30 +254,30 @@ T = data['temp']
 Tdew = data['dp']
 U = data['wspeed']
 
-print "\nRecomputing some values assuming the main measurements are T and Tdew"
+print("\nRecomputing some values assuming the main measurements are T and Tdew")
 
 ## Pvapor == Psat (Tdew) with corrections due to Pressure
 Pv = fun_Psat (Tdew, P)
-print "vapor pressure \t>>>\t %s" % calc_err (Pv, data['vp'])
+print("vapor pressure \t>>>\t %s" % calc_err (Pv, data['vp']))
 
 ## Pvsat == Psat (T) with corrections due to Pressure
 Pvs = fun_Psat (T, P)
-print "sat. vapor pressure \t>>>\t %s" % calc_err (Pvs, data['svp'])
+print("sat. vapor pressure \t>>>\t %s" % calc_err (Pvs, data['svp']))
 
 ## relative humidity (just to compare against the value in soundings)
 RH = Pv / Pvs * 100
-print "relative humidity \t>>>\t %s" % calc_err (RH, data['relhum'])
+print("relative humidity \t>>>\t %s" % calc_err (RH, data['relhum']))
 
 ## vapor mixing ratio
 wv = Pv / (P - Pv) * Rd / Rv
-print "vapor mix. ratio \t>>>\t %s" % calc_err (wv, data['mix_rat'])
+print("vapor mix. ratio \t>>>\t %s" % calc_err (wv, data['mix_rat']))
 
 ## specific humidity
 # qv = wv / (1. + wv)
 
 ## virtual temperature
 Tv = T * (1. + wv * Rv/Rd) / (1. + wv)
-print "virtual temperature \t>>>\t %s" % calc_err (Tv, data['vtemp'])
+print("virtual temperature \t>>>\t %s" % calc_err (Tv, data['vtemp']))
 
 ## use radio-sounding Tv instead
 Tv = data['vtemp']
@@ -377,9 +380,9 @@ ax[0,1].set_ylim(ax[0,0].get_ylim())
 nhu_signed = np.sign(nhu2) * np.sqrt(np.abs(nhu2))
 Fr_signed = np.sign(Fr2) * np.sqrt(np.abs(Fr2)) 
 Frconstant = np.max(U_f[z <= 1]) / np.mean(N_signed) / hridge
-print "\nmean(N_signed) = %s 1/s" % (np.mean(N_signed))
-print "max(U[z < 1 km]) = %s m/s" % (np.max(U_f[z <= 1]))
-print "Fr contant = %s" % Frconstant
+print("\nmean(N_signed) = %s 1/s" % (np.mean(N_signed)))
+print("max(U[z < 1 km]) = %s m/s" % (np.max(U_f[z <= 1])))
+print("Fr contant = %s" % Frconstant)
 ax[0,2].axvline(0, c='k', ls='-', lw=.8)
 #ax[0,2].plot(nhu_signed, z[1:], c='firebrick', ls='-', lw=3)
 #ax[0,2].set_xlabel(r"$(N\,h/U)^2 / \sqrt{|(N\,h/U)^2|}$")
@@ -413,7 +416,7 @@ figname = data['station'] + " " + data['launched']
 figname = figname.replace(": "," ").replace("/","-").replace(":","-")
 figname = figname.replace("Launched"," ").replace("(UTC)"," ")
 figname = "_".join(figname.strip().split()) + ".pdf"
-print "\nsaving figure to file %s" % figname
+print("\nsaving figure to file %s" % figname)
 plt.savefig(figname, format="pdf")
 
 plt.show()

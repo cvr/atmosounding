@@ -66,14 +66,8 @@ Smoothing and Differentiation of Data by Simplified Least Squares Procedures.
 
 ## Example
 
-Simply run:
+The code runs with either python 2 and 3. Simply run:
 ```sh
 ./sounding.py
 ```
-
-If python 3 is preferred to python 2:
-```sh
-./sounding.py3
-```
-
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # vim: set fileencoding=utf-8 fileformat=unix :
 # -*- coding: utf-8 -*-
 # vim: set ts=8 et sw=4 sts=4 sta :
